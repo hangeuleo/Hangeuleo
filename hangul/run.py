@@ -22,7 +22,10 @@ import sys, tokenize, io, os
 
 def 코드_치환(원본):
     for k in 치환표:
-        원본 = 원본.replace(k+' ', k+'_')
+        원본 = 원본.replace(k+' ', k+' ')
+        원본 = 원본.replace(k+'(', k+'(')
+        원본 = 원본.replace(k+':', k+':')
+        원본 = 원본.replace(k+'\n', k+'\n')
     try:
         토큰 = []
         for t in tokenize.generate_tokens(io.StringIO(원본).readline):
@@ -32,7 +35,7 @@ def 코드_치환(원본):
                 토큰.append(t)
         return tokenize.untokenize(토큰).decode('utf-8')
     except:
-        print("문법 오류 또는 들여쓰기 확인하세요")
+        print("문법이나 들여쓰기 오류")
         return None
 
 if __name__ == "__main__":
