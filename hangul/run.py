@@ -1,4 +1,7 @@
-import sys, tokenize, io, os
+import sys
+import tokenize
+import io
+import os
 
 치환표 = {
     '만약':'if',
@@ -21,35 +24,46 @@ import sys, tokenize, io, os
 }
 
 def 코드_치환(원본):
-    lines = 원본.splitlines(keepends=True)
-    new_lines = []
-    for line in lines:
-        stripped = line.lstrip()
-        indent = line[:len(line)-len(stripped)]
-        words = stripped.split()
-        new_words = []
+    치환된_줄들 = []
+    줄들 = 원본.splitlines(keepends=True)
+    
+    for 줄 in 줄들:
+        앞공백 = len(줄) - len(줄.lstrip())
+        내용 = 줄.lstrip()
+        
+        단어들 = []
         i = 0
-        while i < len(words):
-            word = words[i]
-            if word in 치환표:
-                new_words.append(치환표[word])
+        while i < len(내용):
+            if 내용[i].isspace():
+                단어들.append(내용[i])
+                i += 1
+                continue
+            
+            j = i
+            while j < len(내용) and not 내용[j].isspace():
+                j += 1
+            단어 = 내용[i:j]
+            
+            if 단어 in 치환표:
+                단어들.append(치환표[단어])
             else:
-                new_words.append(word)
-            i += 1
-        new_line = indent + ' '.join(new_words)
-        new_lines.append(new_line)
-    new_code = ''.join(new_lines)
+                단어들.append(단어)
+            
+            i = j
+        
+        새줄 = ' ' * 앞공백 + ''.join(단어들)
+        치환된_줄들.append(새줄)
+    
+    치환코드 = ''.join(치환된_줄들)
+    
     try:
-        토큰 = []
-        g = tokenize.generate_tokens(io.StringIO(new_code).readline)
-        for t in g:
-            토큰.append(t)
-        return tokenize.untokenize(토큰)
+        토큰들 = list(tokenize.generate_tokens(io.StringIO(치환코드).readline))
+        return tokenize.untokenize(토큰들)
     except tokenize.TokenError:
-        print("들여쓰기 또는 괄호가 맞지 않습니다")
+        print("들여쓰기나 괄호가 맞지 않습니다")
         return None
     except Exception as e:
-        print("코드 처리 중 오류:", e)
+        print("코드 처리 오류:", e)
         return None
 
 if __name__ == "__main__":
