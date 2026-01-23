@@ -1,4 +1,4 @@
-import sys, tokenize, io, os
+import sys, tokenize, io, os, re
 
 치환표 = {
     '만약':'if',
@@ -21,31 +21,23 @@ import sys, tokenize, io, os
 }
 
 def 코드_치환(원본):
-    lines = 원본.splitlines()
-    new_lines = []
-    for line in lines:
-        stripped = line.lstrip()
-        indent = line[:len(line)-len(stripped)]
-        words = stripped.split()
-        new_words = []
-        i = 0
-        while i < len(words):
-            word = words[i]
-            if word in 치환표:
-                new_words.append(치환표[word])
-            else:
-                new_words.append(word)
-            i += 1
-        new_line = indent + ' '.join(new_words)
-        new_lines.append(new_line)
-    new_code = '\n'.join(new_lines)
+    원본 = re.sub(r'\s+', ' ', 원본)  # 띄어쓰기 여러 개 → 하나로
+    원본 = 원본.replace('\n ', '\n')   # 줄 시작 공백 정리
     try:
         토큰 = []
-        for t in tokenize.generate_tokens(io.StringIO(new_code).readline):
-            토큰.append(t)
+        g = tokenize.generate_tokens(io.StringIO(원본).readline)
+        for t in g:
+            if t.type == tokenize.NAME and t.string in 치환표:
+                토큰.append(tokenize.TokenInfo(t.type, 치환표[t.string], t.start, t.end, t.line))
+            else:
+                토큰.append(t)
         return tokenize.untokenize(토큰).decode('utf-8')
-    except:
-        print("문법 오류 또는 들여쓰기 확인하세요")
+    except tokenize.TokenError as e:
+        print("들여쓰기 또는 괄호 오류가 있습니다.")
+        print(e)
+        return None
+    except Exception as e:
+        print("코드 처리 중 오류:", e)
         return None
 
 if __name__ == "__main__":
