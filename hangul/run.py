@@ -1,7 +1,4 @@
-import sys
-import tokenize
-import io
-import os
+import sys, tokenize, io, os
 
 치환표 = {
     '만약': 'if',
@@ -23,14 +20,19 @@ import os
     '길이': 'len',
 }
 
-def 코드_치환(원본):
+def 코드_치환(원본코드):
+    # 1. 띄어쓰기가 있는 키워드를 _로 변환 (예: "만약 점수" → "만약_점수")
+    for kor in 치환표:
+        원본코드 = 원본코드.replace(f"{kor} ", f"{kor}_")
+
+    # 2. 기존 토큰 치환
     try:
         토큰들 = []
-        for 토큰 in tokenize.generate_tokens(io.StringIO(원본).readline):
-            if 토큰.type == tokenize.NAME and 토큰.string in 치환표:
-                토큰들.append((토큰.type, 치환표[토큰.string], 토큰.start, 토큰.end, 토큰.line))
+        for t in tokenize.generate_tokens(io.StringIO(원본코드).readline):
+            if t.type == tokenize.NAME and t.string in 치환표:
+                토큰들.append((t.type, 치환표[t.string], t.start, t.end, t.line))
             else:
-                토큰들.append(토큰)
+                토큰들.append(t)
         return tokenize.untokenize(토큰들).decode('utf-8')
     except Exception as e:
         print(f"치환 오류: {e}")
@@ -38,7 +40,7 @@ def 코드_치환(원본):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("사용법: python -m hangeul.run 파일명.kor")
+        print("사용법: python run.py 파일명.kor")
         sys.exit(1)
 
     파일 = sys.argv[1]
