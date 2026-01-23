@@ -21,21 +21,31 @@ import sys, tokenize, io, os
 }
 
 def 코드_치환(원본):
-    for k in 치환표:
-        원본 = 원본.replace(k+' ', k+' ')
-        원본 = 원본.replace(k+'(', k+'(')
-        원본 = 원본.replace(k+':', k+':')
-        원본 = 원본.replace(k+'\n', k+'\n')
+    lines = 원본.splitlines()
+    new_lines = []
+    for line in lines:
+        stripped = line.lstrip()
+        indent = line[:len(line)-len(stripped)]
+        words = stripped.split()
+        new_words = []
+        i = 0
+        while i < len(words):
+            word = words[i]
+            if word in 치환표:
+                new_words.append(치환표[word])
+            else:
+                new_words.append(word)
+            i += 1
+        new_line = indent + ' '.join(new_words)
+        new_lines.append(new_line)
+    new_code = '\n'.join(new_lines)
     try:
         토큰 = []
-        for t in tokenize.generate_tokens(io.StringIO(원본).readline):
-            if t.type == tokenize.NAME and t.string in 치환표:
-                토큰.append((t.type, 치환표[t.string], t.start, t.end, t.line))
-            else:
-                토큰.append(t)
+        for t in tokenize.generate_tokens(io.StringIO(new_code).readline):
+            토큰.append(t)
         return tokenize.untokenize(토큰).decode('utf-8')
     except:
-        print("문법이나 들여쓰기 오류")
+        print("문법 오류 또는 들여쓰기 확인하세요")
         return None
 
 if __name__ == "__main__":
